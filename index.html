@@ -56,6 +56,8 @@
   .barra{height:9px;background:var(--superficie-alta);border-radius:99px;margin-top:16px;overflow:hidden;}
   .barra > i{display:block;height:100%;width:0;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1),background .4s;}
   .barra-info{display:flex;justify-content:space-between;font-size:12px;color:var(--texto-3);margin-top:7px;}
+  .sueldo-mes{display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--teal);background:rgba(46,230,197,.1);border:1px solid rgba(46,230,197,.28);padding:7px 14px;border-radius:99px;cursor:pointer;}
+  .sueldo-mes:active{background:rgba(46,230,197,.22);}
 
   /* ===== Filtros rápidos ===== */
   .filtros{display:flex;gap:8px;padding:18px 16px 4px;}
@@ -335,12 +337,20 @@ function cargar(){
 }
 // Completa campos nuevos sin tocar lo ya cargado (categorías, atajos, plan).
 function ensureShape(){
-  if(typeof state.sueldo!=='number') state.sueldo=0;
   if(!Array.isArray(state.movs)) state.movs=[];
   if(!Array.isArray(state.cats)||!state.cats.length) state.cats=DEFAULT_CATS.map(c=>({...c}));
   if(!Array.isArray(state.atajos)) state.atajos=[];
   if(!state.plan) state.plan={activo:true,pNec:50,pGus:30,pAho:20};
+  // Sueldo por mes. Si venías con un sueldo único, lo paso al mes actual (una sola vez).
+  if(!state.sueldos){
+    state.sueldos={};
+    if(typeof state.sueldo==='number' && state.sueldo>0){
+      state.sueldos[hoyStr().slice(0,7)]=state.sueldo;
+    }
+  }
 }
+// Sueldo del mes pedido (0 si no lo cargaste). Cada mes es independiente.
+function sueldoDe(ym){ return (state.sueldos && state.sueldos[ym]) || 0; }
 function guardar(){
   if(!usaLocal) return;
   try{ localStorage.setItem('misGastos', JSON.stringify(state)); }catch(e){ usaLocal=false; }
@@ -367,7 +377,7 @@ const plata = n => fmt.format(Math.round(n||0));
 function movsMes(ym){ return state.movs.filter(m=>m.fecha.slice(0,7)===ym); }
 function gastosMes(ym){ return movsMes(ym).filter(m=>m.tipo==='gasto').reduce((s,m)=>s+m.monto,0); }
 function ingresosExtraMes(ym){ return movsMes(ym).filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+m.monto,0); }
-function ingresoTotalMes(ym){ return (state.sueldo||0) + ingresosExtraMes(ym); }
+function ingresoTotalMes(ym){ return sueldoDe(ym) + ingresosExtraMes(ym); }
 function disponibleMes(ym){ return ingresoTotalMes(ym) - gastosMes(ym); }
 
 // ============================================================
@@ -403,10 +413,11 @@ function render(){
 
 // ---------- INICIO ----------
 function vistaInicio(){
+  const s=sueldoDe(mesVista);
   const ing=ingresoTotalMes(mesVista), gas=gastosMes(mesVista), disp=disponibleMes(mesVista);
   const pct = ing>0 ? Math.min(100,(gas/ing)*100) : 0;
   let color=var2('--verde'); if(pct>=90)color=var2('--rojo'); else if(pct>=70)color=var2('--ambar');
-  const sinSueldo = (state.sueldo||0)===0;
+  const sinSueldo = s<=0;
 
   // filtros
   const t=hoyStr();
@@ -416,9 +427,10 @@ function vistaInicio(){
 
   let html=`
   <div class="hero">
-    <div class="et">Disponible este mes</div>
+    <div class="et">Disponible en ${nombreMes(mesVista)}</div>
     <div class="monto ${disp<0?'mal':'ok'}">${plata(disp)}</div>
-    <div class="sub">${sinSueldo?'Cargá tu sueldo en Ajustes para ver cuánto te queda 👇':`Gastaste ${plata(gas)} de ${plata(ing)}`}</div>
+    <div class="sueldo-mes" onclick="editarSueldoMes()">${sinSueldo?'➕ Cargá el sueldo de este mes':'💵 Sueldo: '+plata(s)+' · editar'}</div>
+    ${sinSueldo?'<div class="sub">Poné el sueldo de este mes (sumale aguinaldo, feriados, etc.) 👆</div>':`<div class="sub">Gastaste ${plata(gas)} de ${plata(ing)}</div>`}
     <div class="barra"><i style="width:${pct}%;background:${color}"></i></div>
     <div class="barra-info"><span>${pct.toFixed(0)}% usado</span><span>${pct>=90?'¡Ojo, casi al límite!':pct>=70?'Tranqui, todavía hay':'Vas holgado'}</span></div>
   </div>
@@ -444,6 +456,16 @@ function seccionAtajos(){
     </div></div>`;
 }
 function setFiltro(f){filtro=f;render();}
+// Carga o edita el sueldo del mes que estás viendo. Cada mes es independiente.
+function editarSueldoMes(){
+  const ym=mesVista, actual=state.sueldos[ym]||'';
+  const v=prompt('Sueldo de '+nombreMes(ym)+'\n(sumale aguinaldo, feriados trabajados, etc.)\nPonelo en 0 o dejalo vacío para borrarlo:', actual);
+  if(v===null) return;
+  const n=parseFloat(v);
+  if(!n||n<=0){ delete state.sueldos[ym]; toast('Sueldo del mes borrado'); }
+  else { state.sueldos[ym]=n; toast('Sueldo de '+nombreMes(ym)+' guardado'); }
+  guardar(); render();
+}
 
 function listaMovs(){
   let lista;
@@ -592,8 +614,8 @@ function vistaGraficos(){
 
 // ---------- PLAN (cajitas con destino) ----------
 function vistaPlan(){
-  const s=state.sueldo||0;
-  if(s<=0) return `<div class="sec"><div class="vacio"><span class="em">🎯</span><b>Cargá tu sueldo primero</b><br>Con eso armo tu plan de cajitas. Está en Ajustes ⚙️</div></div>`;
+  const s=sueldoDe(mesVista);
+  if(s<=0) return `<div class="sec"><div class="vacio"><span class="em">🎯</span><b>Cargá el sueldo de ${nombreMes(mesVista)}</b><br>Tocá el sueldo arriba en Inicio y armo tu plan de cajitas 🎯</div></div>`;
   const p=state.plan;
   const topeNec=s*p.pNec/100, topeGus=s*p.pGus/100, metaAho=s*p.pAho/100;
   const gastoNec=movsMes(mesVista).filter(m=>m.tipo==='gasto'&&m.nec).reduce((x,m)=>x+m.monto,0);
@@ -655,8 +677,8 @@ function vistaConsejos(){
 function consejos(){
   const ing=ingresoTotalMes(mesVista), gas=gastosMes(mesVista), disp=disponibleMes(mesVista);
   const out=[];
-  if((state.sueldo||0)===0){
-    out.push({em:'🧭',t:'alerta',m:'Todavía no cargaste tu sueldo. Andá a Ajustes y ponelo: sin eso no puedo decirte hasta dónde podés estirar el mes.'});
+  if(sueldoDe(mesVista)<=0){
+    out.push({em:'🧭',t:'alerta',m:`Todavía no cargaste el sueldo de ${nombreMes(mesVista)}. Tocá el sueldo arriba en Inicio y ahí sí te digo hasta dónde podés estirar el mes.`});
     return out.map(render_consejo).join('');
   }
   const pct=ing>0?(gas/ing)*100:0;
@@ -700,7 +722,7 @@ function logros(){
   }
   const L=[
     {em:'🚀',n:'Arranque',d:'Cargaste tu primer movimiento',on:tieneMov},
-    {em:'💵',n:'Sueldo listo',d:'Configuraste tu ingreso',on:(state.sueldo||0)>0},
+    {em:'💵',n:'Sueldo listo',d:'Cargaste el sueldo de algún mes',on:Object.keys(state.sueldos||{}).length>0},
     {em:'🔥',n:'Sin antojos',d:`${racha} día${racha!==1?'s':''} seguidos sin antojos`,on:racha>=3},
     {em:'📝',n:'Detallista',d:'10 gastos con descripción',on:conDesc>=10},
     {em:'🗓️',n:'Constante',d:'Registraste 7 días distintos',on:diasDistintos>=7},
@@ -711,15 +733,12 @@ function logros(){
 
 // ---------- AJUSTES ----------
 function vistaAjustes(){
+  const cargados=Object.keys(state.sueldos||{}).sort();
   return `<div class="sec">
     <h2>Tu sueldo</h2>
     <div class="card">
-      <div class="campo">
-        <label>Sueldo mensual</label>
-        <input class="input" id="setSueldo" type="number" inputmode="numeric" value="${state.sueldo||''}" placeholder="Ej: 850000">
-      </div>
-      <button class="btn btn-pri" onclick="guardarSueldo()">Guardar sueldo</button>
-      <p class="ayuda">Los ingresos extra (changas, ventas, etc.) los cargás con el botón + eligiendo "Ingreso extra".</p>
+      <p class="ayuda" style="margin-top:0">El sueldo se carga <b>por mes</b>, desde Inicio: tocá el sueldo arriba de todo y ponele el monto real de ese mes (con aguinaldo, feriados, vacaciones, lo que sea). Cada mes es independiente y arranca vacío.</p>
+      ${cargados.length?`<div style="margin-top:6px">${cargados.map(ym=>`<div class="gest-item"><span class="gi-nom" style="text-transform:capitalize">${nombreMes(ym)}</span><b style="font-variant-numeric:tabular-nums">${plata(state.sueldos[ym])}</b></div>`).join('')}</div>`:'<p class="ayuda">Todavía no cargaste el sueldo de ningún mes.</p>'}
     </div>
 
     <h2>Mis categorías</h2>
@@ -755,10 +774,7 @@ function vistaAjustes(){
     <p class="ayuda" style="text-align:center;padding:10px 0 20px;">Mis Gastos · hecho para vos, sin publicidad 🧉</p>
   </div>`;
 }
-function guardarSueldo(){
-  const v=parseFloat(document.getElementById('setSueldo').value)||0;
-  state.sueldo=v; guardar(); toast('Sueldo guardado'); render();
-}
+function guardarSueldo(){ /* obsoleto: el sueldo ahora se carga por mes desde Inicio */ }
 function exportar(){
   const blob=new Blob([JSON.stringify(state)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
