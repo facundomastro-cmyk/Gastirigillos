@@ -81,6 +81,42 @@
   .mov .val.ingreso{color:var(--teal);}
   .mov .borrar{background:none;border:none;color:var(--texto-3);font-size:18px;width:30px;height:30px;border-radius:8px;cursor:pointer;flex:none;}
   .mov .borrar:active{background:var(--superficie-alta);color:var(--rojo);}
+  .mov-tap{flex:1;display:flex;align-items:center;gap:13px;min-width:0;cursor:pointer;}
+  .mov-tap:active{opacity:.6;}
+  .ley-row{cursor:pointer;}
+  .ley-row:active{background:var(--superficie-alta);}
+  .chev{color:var(--texto-3);margin-left:8px;font-size:18px;}
+  .medios{display:flex;gap:8px;margin-bottom:18px;}
+  .medios button{flex:1;padding:11px 4px;border-radius:12px;border:1px solid var(--borde);background:var(--superficie-alta);color:var(--texto-2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .medios button.on{background:var(--violeta);border-color:var(--violeta);color:#120a26;}
+  .tag-tarjeta{background:rgba(91,157,255,.16);color:#5b9dff;}
+  /* atajos */
+  .atajos-row{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch;}
+  .atajos-row::-webkit-scrollbar{display:none;}
+  .atajo-chip{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--superficie);border:1px solid var(--borde);border-radius:14px;padding:9px 14px;cursor:pointer;font-family:inherit;color:var(--texto);min-width:94px;}
+  .atajo-chip:active{background:var(--superficie-alta);transform:scale(.97);}
+  .atajo-chip .ae{font-size:18px;}
+  .atajo-chip .an{font-size:12px;color:var(--texto-2);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+  .atajo-chip .am{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .atajo-chip.nuevo{justify-content:center;align-items:center;color:var(--teal);border-style:dashed;font-weight:600;font-size:13px;min-width:80px;}
+  /* cajitas del plan */
+  .caj-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px;}
+  .caj-nom{font-size:15px;font-weight:600;}
+  .caj-val{font-size:12px;color:var(--texto-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .caj-sub{font-size:12px;color:var(--texto-3);margin-top:8px;}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;font-size:15px;}
+  .meta-row b{font-variant-numeric:tabular-nums;}
+  .meta-sub{font-size:12px;color:var(--texto-3);margin-top:3px;}
+  .plan-cfg{display:flex;gap:10px;margin-bottom:14px;}
+  .plan-cfg label{flex:1;font-size:12px;color:var(--texto-2);display:flex;flex-direction:column;gap:6px;}
+  .input.mini{padding:11px 6px;font-size:16px;text-align:center;}
+  /* gestión en ajustes */
+  .gest-item{display:flex;align-items:center;gap:11px;padding:10px 2px;}
+  .gest-item + .gest-item{border-top:1px solid var(--borde);}
+  .gi-ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;flex:none;}
+  .gi-nom{flex:1;font-size:15px;min-width:0;}
+  .gi-x{background:none;border:none;color:var(--texto-3);font-size:19px;cursor:pointer;width:32px;height:32px;border-radius:8px;flex:none;}
+  .gi-x:active{background:var(--superficie-alta);}
   .tag-nd{font-size:10px;padding:1px 7px;border-radius:99px;margin-left:7px;vertical-align:middle;}
   .tag-nec{background:rgba(52,211,153,.15);color:var(--verde);}
   .tag-des{background:rgba(157,123,255,.18);color:var(--violeta);}
@@ -201,6 +237,7 @@
 
 <nav class="nav">
   <button class="tab on" data-tab="inicio" onclick="irA('inicio')"><span class="ti">🏠</span>Inicio</button>
+  <button class="tab" data-tab="plan" onclick="irA('plan')"><span class="ti">🎯</span>Plan</button>
   <button class="tab" data-tab="graficos" onclick="irA('graficos')"><span class="ti">📊</span>Gráficos</button>
   <button class="tab" data-tab="consejos" onclick="irA('consejos')"><span class="ti">💡</span>Consejos</button>
   <button class="tab" data-tab="ajustes" onclick="irA('ajustes')"><span class="ti">⚙️</span>Ajustes</button>
@@ -209,6 +246,7 @@
 <div class="overlay" id="overlay" onclick="cerrarHoja()"></div>
 <div class="hoja" id="hoja" onclick="event.stopPropagation()">
   <div class="grip"></div>
+  <div id="hojaTitulo" style="font-size:16px;font-weight:700;text-align:center;margin-bottom:14px;">Nuevo movimiento</div>
   <div class="toggle-tipo">
     <button id="btGasto" class="on" onclick="setTipo('gasto')">Gasto</button>
     <button id="btIngreso" onclick="setTipo('ingreso')">Ingreso extra</button>
@@ -231,12 +269,36 @@
         <button id="swDes" onclick="setND(false)">Antojo</button>
       </div>
     </div>
+    <label style="font-size:13px;color:var(--texto-2);display:block;margin-bottom:7px;">Medio de pago</label>
+    <div class="medios" id="medios"></div>
   </div>
   <div class="campo">
     <label>Fecha</label>
     <input class="input" id="inFecha" type="date">
   </div>
   <button class="btn btn-pri" onclick="guardarMov()">Guardar</button>
+  <button id="btBorrarMov" class="btn btn-peli" style="display:none" onclick="borrarDesdeHoja()">Borrar este movimiento</button>
+</div>
+
+<div class="overlay" id="detOverlay" style="z-index:38" onclick="cerrarDetalle()"></div>
+<div class="hoja" id="detHoja" style="z-index:39" onclick="event.stopPropagation()">
+  <div class="grip"></div>
+  <div id="detContenido"></div>
+</div>
+
+<div class="overlay" id="atOverlay" style="z-index:42" onclick="cerrarAtajoHoja()"></div>
+<div class="hoja" id="atHoja" style="z-index:43" onclick="event.stopPropagation()">
+  <div class="grip"></div>
+  <div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:14px;">Nuevo atajo</div>
+  <div class="campo"><label>Nombre</label><input class="input" id="atDesc" type="text" placeholder="Ej: Bondi al centro"></div>
+  <div class="campo"><label>Monto fijo</label><input class="input" id="atMonto" type="number" inputmode="numeric" placeholder="0" style="font-size:22px;font-weight:700"></div>
+  <label style="font-size:13px;color:var(--texto-2);display:block;margin-bottom:7px">Categoría</label>
+  <div class="cats" id="atCats"></div>
+  <div class="nd-switch"><span style="font-size:14px;color:var(--texto-2)">¿Necesidad o antojo?</span>
+    <div class="sw"><button id="atNec" class="on-nec" onclick="atSetND(true)">Necesidad</button><button id="atDes" onclick="atSetND(false)">Antojo</button></div></div>
+  <label style="font-size:13px;color:var(--texto-2);display:block;margin-bottom:7px">Medio de pago</label>
+  <div class="medios" id="atMedios"></div>
+  <button class="btn btn-pri" onclick="guardarAtajo()">Crear atajo</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -248,7 +310,7 @@
    ============================================================ */
 
 // --- Categorías con su ícono y color (los "grafiquitos") ---
-const CATS = [
+const DEFAULT_CATS = [
   {k:'comida',     n:'Comida',          em:'🍔', c:'#ff8a5c'},
   {k:'transporte', n:'Transporte',      em:'🚌', c:'#5b9dff'},
   {k:'ocio',       n:'Entretenimiento', em:'🎬', c:'#9d7bff'},
@@ -257,7 +319,9 @@ const CATS = [
   {k:'ropa',       n:'Ropa',            em:'👕', c:'#2ee6c5'},
   {k:'varios',     n:'Varios',          em:'💰', c:'#94a3b8'},
 ];
-const catDe = k => CATS.find(c=>c.k===k) || CATS[CATS.length-1];
+const PALETA = ['#ff8a5c','#5b9dff','#9d7bff','#fbbf24','#ff6b9d','#2ee6c5','#34d399','#f87171','#e879f9','#94a3b8'];
+function cats(){ return (state.cats && state.cats.length) ? state.cats : DEFAULT_CATS; }
+const catDe = k => cats().find(c=>c.k===k) || {k:k,n:'Otros',em:'💸',c:'#94a3b8'};
 
 // --- Estado y persistencia ---
 let state = {sueldo:0, movs:[]};
@@ -267,6 +331,15 @@ function cargar(){
     const raw = localStorage.getItem('misGastos');
     if(raw) state = JSON.parse(raw);
   }catch(e){ usaLocal=false; } // si el navegador bloquea, seguimos en memoria
+  ensureShape();
+}
+// Completa campos nuevos sin tocar lo ya cargado (categorías, atajos, plan).
+function ensureShape(){
+  if(typeof state.sueldo!=='number') state.sueldo=0;
+  if(!Array.isArray(state.movs)) state.movs=[];
+  if(!Array.isArray(state.cats)||!state.cats.length) state.cats=DEFAULT_CATS.map(c=>({...c}));
+  if(!Array.isArray(state.atajos)) state.atajos=[];
+  if(!state.plan) state.plan={activo:true,pNec:50,pGus:30,pAho:20};
 }
 function guardar(){
   if(!usaLocal) return;
@@ -321,6 +394,7 @@ function render(){
   document.getElementById('mesLabel').textContent=nombreMes(mesVista);
   const v=document.getElementById('vista');
   if(tabActual==='inicio') v.innerHTML=vistaInicio();
+  else if(tabActual==='plan') v.innerHTML=vistaPlan();
   else if(tabActual==='graficos') v.innerHTML=vistaGraficos();
   else if(tabActual==='consejos') v.innerHTML=vistaConsejos();
   else if(tabActual==='ajustes') v.innerHTML=vistaAjustes();
@@ -353,8 +427,21 @@ function vistaInicio(){
     <button class="${filtro==='semana'?'on':''}" onclick="setFiltro('semana')">Semana<span class="ftot">${plata(totSem)}</span></button>
     <button class="${filtro==='mes'?'on':''}" onclick="setFiltro('mes')">Mes<span class="ftot">${plata(gas)}</span></button>
   </div>
+  ${seccionAtajos()}
   <div class="sec"><h2>Movimientos</h2>${listaMovs()}</div>`;
   return html;
+}
+// Chips de gastos repetitivos: un toque y se carga con fecha de hoy.
+function seccionAtajos(){
+  const chips=(state.atajos||[]).map(a=>{
+    const c=catDe(a.categoria);
+    return `<button class="atajo-chip" onclick="usarAtajo(${a.id})">
+      <span class="ae">${c.em}</span><span class="an">${escape(a.desc)||c.n}</span><span class="am">${plata(a.monto)}</span></button>`;
+  }).join('');
+  return `<div class="sec"><h2>Atajos</h2>
+    <div class="atajos-row">${chips}
+      <button class="atajo-chip nuevo" onclick="abrirAtajoHoja()">＋ Nuevo</button>
+    </div></div>`;
 }
 function setFiltro(f){filtro=f;render();}
 
@@ -367,20 +454,70 @@ function listaMovs(){
 
   if(!lista.length) return `<div class="vacio"><span class="em">🧉</span><b>Nada por acá todavía</b><br>Tocá el botón + para cargar tu primer movimiento.</div>`;
 
-  return `<div class="card">${lista.map(m=>{
-    const c=catDe(m.categoria);
-    const esG=m.tipo==='gasto';
-    const ico=esG?c.em:'💵';
-    const bg=esG?c.c+'22':'rgba(46,230,197,.15)';
-    const tag = esG ? `<span class="tag-nd ${m.nec?'tag-nec':'tag-des'}">${m.nec?'necesidad':'antojo'}</span>`:'';
-    const f=new Date(m.fecha+'T00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'});
-    return `<div class="mov">
+  return `<div class="card">${lista.map(renderMovCard).join('')}</div>`;
+}
+
+// Tarjeta de un movimiento (se usa en la lista y en el detalle por categoría).
+// Tocar la fila abre la edición; la × borra.
+function renderMovCard(m){
+  const c=catDe(m.categoria);
+  const esG=m.tipo==='gasto';
+  const ico=esG?c.em:'💵';
+  const bg=esG?c.c+'22':'rgba(46,230,197,.15)';
+  const tag = esG ? `<span class="tag-nd ${m.nec?'tag-nec':'tag-des'}">${m.nec?'necesidad':'antojo'}</span>`:'';
+  const tagT = (esG && m.medio==='tarjeta') ? `<span class="tag-nd tag-tarjeta">💳 tarjeta</span>`:'';
+  const f=new Date(m.fecha+'T00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+  return `<div class="mov">
+    <div class="mov-tap" onclick="editarMov(${m.id})">
       <div class="ico" style="background:${bg}">${ico}</div>
-      <div class="desc"><b>${escape(m.desc)||(esG?c.n:'Ingreso')}</b><span>${f}${esG?' · '+c.n:''}${tag}</span></div>
+      <div class="desc"><b>${escape(m.desc)||(esG?c.n:'Ingreso')}</b><span>${f}${esG?' · '+c.n:''}${tag}${tagT}</span></div>
       <div class="val ${m.tipo}">${esG?'-':'+'}${plata(m.monto)}</div>
-      <button class="borrar" onclick="borrar(${m.id})">×</button>
-    </div>`;
-  }).join('')}</div>`;
+    </div>
+    <button class="borrar" onclick="borrar(${m.id})">×</button>
+  </div>`;
+}
+
+// ---------- DETALLE (por categoría o por tarjeta) ----------
+let detModo=null;   // 'cat' | 'tarjeta'
+let catDetalle=null;
+function verCategoria(k){ detModo='cat'; catDetalle=k; abrirDetalle(); }
+function verTarjeta(){ detModo='tarjeta'; catDetalle=null; abrirDetalle(); }
+function abrirDetalle(){
+  renderDetalle();
+  document.getElementById('detOverlay').classList.add('show');
+  document.getElementById('detHoja').classList.add('show');
+}
+function cerrarDetalle(){
+  detModo=null; catDetalle=null;
+  document.getElementById('detOverlay').classList.remove('show');
+  document.getElementById('detHoja').classList.remove('show');
+}
+function renderDetalle(){
+  if(!detModo) return;
+  let lista, cab;
+  if(detModo==='tarjeta'){
+    lista=movsMes(mesVista).filter(m=>m.tipo==='gasto'&&m.medio==='tarjeta');
+    const tot=lista.reduce((s,m)=>s+m.monto,0);
+    cab=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+      <div class="ico" style="background:rgba(91,157,255,.18)">💳</div>
+      <div style="flex:1"><b style="font-size:17px">Tarjeta</b>
+        <div style="font-size:13px;color:var(--texto-3)">${lista.length} gasto${lista.length!==1?'s':''} · ${nombreMes(mesVista)}</div></div>
+      <b style="font-size:18px;font-variant-numeric:tabular-nums">${plata(tot)}</b></div>
+      <p style="font-size:12px;color:var(--texto-3);margin:8px 4px 10px">Todo lo que pagaste con tarjeta este mes. Tocá un ítem para corregirlo.</p>`;
+  }else{
+    const c=catDe(catDetalle);
+    lista=movsMes(mesVista).filter(m=>m.tipo==='gasto'&&m.categoria===catDetalle);
+    const tot=lista.reduce((s,m)=>s+m.monto,0);
+    cab=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+      <div class="ico" style="background:${c.c}22">${c.em}</div>
+      <div style="flex:1"><b style="font-size:17px">${c.n}</b>
+        <div style="font-size:13px;color:var(--texto-3)">${lista.length} gasto${lista.length!==1?'s':''} · ${nombreMes(mesVista)}</div></div>
+      <b style="font-size:18px;font-variant-numeric:tabular-nums">${plata(tot)}</b></div>
+      <p style="font-size:12px;color:var(--texto-3);margin:8px 4px 10px">Tocá un gasto para editarlo, corregir el monto o cambiarlo de categoría.</p>`;
+  }
+  lista=[...lista].sort((a,b)=> b.fecha.localeCompare(a.fecha) || b.id-a.id);
+  document.getElementById('detContenido').innerHTML = cab +
+    (lista.map(renderMovCard).join('')||'<div class="vacio" style="padding:18px">Nada por acá este mes.</div>');
 }
 
 // ---------- GRÁFICOS ----------
@@ -417,13 +554,15 @@ function vistaGraficos(){
         <div class="centro"><small>Gastado</small><b>${plata(gas)}</b></div>
       </div>
       <div class="leyenda">${items.map(it=>`
-        <div class="row">
+        <div class="row ley-row" onclick="verCategoria('${it.k}')">
           <span class="punto" style="background:${it.c}"></span>
           <span class="nom">${it.em} ${it.n}</span>
           <span class="pct">${(it.pct*100).toFixed(0)}%</span>
           <span class="pl">${plata(it.v)}</span>
+          <span class="chev">›</span>
         </div>`).join('')}
       </div>
+      <p style="font-size:12px;color:var(--texto-3);text-align:center;margin-top:10px">Tocá una categoría para ver el detalle 👆</p>
     </div>
     <h2>Necesidad vs. antojo</h2>
     <div class="card">
@@ -436,7 +575,77 @@ function vistaGraficos(){
         <span style="color:var(--violeta)">Antojo · ${plata(des)}</span>
       </div>
     </div>
+    ${(()=>{ 
+      const tj=movsMes(mesVista).filter(m=>m.tipo==='gasto'&&m.medio==='tarjeta').reduce((s,m)=>s+m.monto,0);
+      if(tj<=0) return '';
+      const p=(tj/gas*100).toFixed(0);
+      return `<h2>Pagado con tarjeta</h2>
+      <div class="card ley-row" onclick="verTarjeta()" style="display:flex;align-items:center;gap:12px">
+        <div class="ico" style="background:rgba(91,157,255,.18)">💳</div>
+        <div style="flex:1"><b style="font-size:16px">${plata(tj)}</b>
+          <div style="font-size:12px;color:var(--texto-3)">${p}% de lo que gastaste este mes</div></div>
+        <span class="chev">›</span>
+      </div>`;
+    })()}
   </div>`;
+}
+
+// ---------- PLAN (cajitas con destino) ----------
+function vistaPlan(){
+  const s=state.sueldo||0;
+  if(s<=0) return `<div class="sec"><div class="vacio"><span class="em">🎯</span><b>Cargá tu sueldo primero</b><br>Con eso armo tu plan de cajitas. Está en Ajustes ⚙️</div></div>`;
+  const p=state.plan;
+  const topeNec=s*p.pNec/100, topeGus=s*p.pGus/100, metaAho=s*p.pAho/100;
+  const gastoNec=movsMes(mesVista).filter(m=>m.tipo==='gasto'&&m.nec).reduce((x,m)=>x+m.monto,0);
+  const gastoGus=movsMes(mesVista).filter(m=>m.tipo==='gasto'&&!m.nec).reduce((x,m)=>x+m.monto,0);
+  const disp=disponibleMes(mesVista);
+  const fondo=s*6, rentas=s*120;
+  return `<div class="sec">
+    <h2>Tu plan del mes</h2>
+    <p style="font-size:13px;color:var(--texto-2);margin:0 4px 12px;line-height:1.5">Reparto tu sueldo de ${plata(s)} en cajitas con destino (regla ${p.pNec}/${p.pGus}/${p.pAho}). Cada barra te muestra cuánto llevás y cuánto te queda.</p>
+    ${cajita('🏠','Necesidades / fijos',gastoNec,topeNec,'gasto','alquiler, servicios, comida')}
+    ${cajita('🎈','Gustos / variables',gastoGus,topeGus,'gasto','salidas, antojos')}
+    ${cajita('🐷','Ahorro / inversión',Math.max(0,disp),metaAho,'ahorro','lo que te sobra apartar')}
+    <h2>Metas de largo plazo</h2>
+    <div class="card">
+      <div class="meta-row"><span>🛟 Fondo de tranquilidad</span><b>${plata(fondo)}</b></div>
+      <div class="meta-sub">6 sueldos guardados: tu colchón para medio año sin ingresos.</div>
+      <div class="meta-row" style="margin-top:14px"><span>🌴 Vivir de rentas</span><b>${plata(rentas)}</b></div>
+      <div class="meta-sub">120 sueldos invertidos: la meta lejana para vivir de la renta.</div>
+    </div>
+    <h2>Ajustar plan</h2>
+    <div class="card">
+      <div class="plan-cfg">
+        <label>Necesidades %<input id="pNec" class="input mini" type="number" inputmode="numeric" value="${p.pNec}"></label>
+        <label>Gustos %<input id="pGus" class="input mini" type="number" inputmode="numeric" value="${p.pGus}"></label>
+        <label>Ahorro %<input id="pAho" class="input mini" type="number" inputmode="numeric" value="${p.pAho}"></label>
+      </div>
+      <button class="btn btn-pri" onclick="guardarPlan()">Guardar plan</button>
+      <p class="ayuda">Lo ideal es que sumen 100. El clásico es 50 / 30 / 20.</p>
+    </div>
+  </div>`;
+}
+function cajita(em,nom,usado,tope,modo,sub){
+  const pct=tope>0?Math.min(100,(usado/tope)*100):0;
+  let color=var2('--verde');
+  if(modo==='gasto'){ if(pct>=90)color=var2('--rojo'); else if(pct>=75)color=var2('--ambar'); }
+  else { color = usado>=tope ? var2('--verde') : var2('--teal'); }
+  const rest=tope-usado;
+  const pie = modo==='gasto'
+    ? (rest>=0?`Te quedan ${plata(rest)} en esta cajita`:`Te pasaste ${plata(-rest)}`)
+    : (usado>=tope?`¡Meta cumplida! Apartaste ${plata(usado)}`:`Faltan ${plata(rest)} para la meta`);
+  return `<div class="card">
+    <div class="caj-top"><span class="caj-nom">${em} ${nom}</span><span class="caj-val">${plata(usado)} / ${plata(tope)}</span></div>
+    <div class="barra"><i style="width:${pct}%;background:${color}"></i></div>
+    <div class="caj-sub">${pie} · ${sub}</div>
+  </div>`;
+}
+function guardarPlan(){
+  const n=+document.getElementById('pNec').value||0;
+  const g=+document.getElementById('pGus').value||0;
+  const a=+document.getElementById('pAho').value||0;
+  state.plan={activo:true,pNec:n,pGus:g,pAho:a};
+  guardar(); toast((n+g+a===100)?'Plan guardado':'Guardado (no suma 100%)'); render();
 }
 
 // ---------- CONSEJOS + LOGROS ----------
@@ -512,6 +721,28 @@ function vistaAjustes(){
       <button class="btn btn-pri" onclick="guardarSueldo()">Guardar sueldo</button>
       <p class="ayuda">Los ingresos extra (changas, ventas, etc.) los cargás con el botón + eligiendo "Ingreso extra".</p>
     </div>
+
+    <h2>Mis categorías</h2>
+    <div class="card">
+      ${cats().map(c=>`<div class="gest-item">
+        <div class="gi-ico" style="background:${c.c}22">${c.em}</div>
+        <span class="gi-nom">${escape(c.n)}</span>
+        <button class="gi-x" onclick="renombrarCategoria('${c.k}')" style="color:var(--violeta)">✎</button>
+        ${c.k!=='varios'?`<button class="gi-x" onclick="borrarCategoria('${c.k}')">×</button>`:''}
+      </div>`).join('')}
+      <button class="btn btn-sec" onclick="agregarCategoria()" style="margin-top:12px">＋ Agregar categoría</button>
+      <p class="ayuda">Acá armás tus rubros. Por ejemplo, creá "Seguros/PAS" para separar lo de rendir. Si borrás una que tiene gastos, esos pasan a "Varios".</p>
+    </div>
+
+    <h2>Mis atajos</h2>
+    <div class="card">
+      ${(state.atajos&&state.atajos.length)?state.atajos.map(a=>{const c=catDe(a.categoria);return `<div class="gest-item">
+        <div class="gi-ico" style="background:${c.c}22">${c.em}</div>
+        <span class="gi-nom">${escape(a.desc)||c.n} · <b style="font-variant-numeric:tabular-nums">${plata(a.monto)}</b></span>
+        <button class="gi-x" onclick="borrarAtajo(${a.id})">×</button>
+      </div>`;}).join(''):'<p class="ayuda" style="margin:0">Todavía no creaste atajos. Se crean desde el "＋ Nuevo" en Inicio.</p>'}
+    </div>
+
     <h2>Tus datos</h2>
     <div class="card">
       <button class="btn btn-sec" onclick="exportar()">⬇️ Descargar copia de seguridad</button>
@@ -548,16 +779,37 @@ function borrarTodo(){
 // ============================================================
 //  HOJA PARA CARGAR MOVIMIENTOS
 // ============================================================
-let nuevoTipo='gasto', nuevaCat='comida', nuevoNec=true;
+let nuevoTipo='gasto', nuevaCat='comida', nuevoNec=true, nuevoMedio='efectivo', editandoId=null;
+const MEDIOS=[['efectivo','Efectivo'],['debito','Débito'],['tarjeta','Tarjeta']];
 function abrirHoja(){
-  nuevoTipo='gasto'; nuevaCat='comida'; nuevoNec=true;
+  editandoId=null;
+  nuevoTipo='gasto'; nuevaCat='comida'; nuevoNec=true; nuevoMedio='efectivo';
   document.getElementById('inMonto').value='';
   document.getElementById('inDesc').value='';
   document.getElementById('inFecha').value=hoyStr();
-  renderCats(); setTipo('gasto'); setND(true);
+  document.getElementById('hojaTitulo').textContent='Nuevo movimiento';
+  document.getElementById('btBorrarMov').style.display='none';
+  document.querySelector('#hoja .btn-pri').textContent='Guardar';
+  renderCats(); renderMedios(); setTipo('gasto'); setND(true);
   document.getElementById('overlay').classList.add('show');
   document.getElementById('hoja').classList.add('show');
   setTimeout(()=>document.getElementById('inMonto').focus(),300);
+}
+// Abre la hoja ya cargada con los datos de un movimiento, para editarlo.
+function editarMov(id){
+  const m=state.movs.find(x=>x.id===id); if(!m) return;
+  editandoId=id;
+  nuevoTipo=m.tipo; nuevaCat=m.categoria||'comida';
+  nuevoNec=m.nec!==false; nuevoMedio=m.medio||'efectivo';
+  document.getElementById('inMonto').value=m.monto;
+  document.getElementById('inDesc').value=m.desc||'';
+  document.getElementById('inFecha').value=m.fecha||hoyStr();
+  document.getElementById('hojaTitulo').textContent='Editar movimiento';
+  document.getElementById('btBorrarMov').style.display='block';
+  document.querySelector('#hoja .btn-pri').textContent='Guardar cambios';
+  renderCats(); renderMedios(); setTipo(m.tipo); setND(nuevoNec);
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('hoja').classList.add('show');
 }
 function cerrarHoja(){
   document.getElementById('overlay').classList.remove('show');
@@ -575,28 +827,125 @@ function setND(v){
   document.getElementById('swDes').classList.toggle('on-des',!v);
 }
 function renderCats(){
-  document.getElementById('cats').innerHTML=CATS.map(c=>
+  document.getElementById('cats').innerHTML=cats().map(c=>
     `<div class="cat-chip ${c.k===nuevaCat?'on':''}" onclick="setCat('${c.k}')">${c.em} ${c.n}</div>`).join('');
 }
 function setCat(k){nuevaCat=k;renderCats();}
+function renderMedios(){
+  document.getElementById('medios').innerHTML=MEDIOS.map(([k,n])=>
+    `<button class="${k===nuevoMedio?'on':''}" onclick="setMedio('${k}')">${n}</button>`).join('');
+}
+function setMedio(k){nuevoMedio=k;renderMedios();}
 function guardarMov(){
   const monto=parseFloat(document.getElementById('inMonto').value);
   if(!monto||monto<=0){toast('Poné un monto');return;}
-  const mov={
-    id:Date.now(),
+  const datos={
     tipo:nuevoTipo,
     monto:monto,
     desc:document.getElementById('inDesc').value.trim(),
     fecha:document.getElementById('inFecha').value||hoyStr(),
     categoria:nuevoTipo==='gasto'?nuevaCat:'varios',
     nec:nuevoTipo==='gasto'?nuevoNec:true,
+    medio:nuevoTipo==='gasto'?nuevoMedio:'efectivo',
   };
-  state.movs.push(mov); guardar(); cerrarHoja();
-  toast(nuevoTipo==='gasto'?'Gasto cargado':'Ingreso cargado'); render();
+  if(editandoId){
+    const m=state.movs.find(x=>x.id===editandoId);
+    if(m) Object.assign(m,datos);
+    toast('Cambios guardados');
+  }else{
+    state.movs.push({id:Date.now(),...datos});
+    toast(nuevoTipo==='gasto'?'Gasto cargado':'Ingreso cargado');
+  }
+  guardar(); cerrarHoja();
+  if(detModo) renderDetalle();
+  render();
+}
+function borrarDesdeHoja(){
+  if(editandoId && confirm('¿Borrar este movimiento?')){
+    state.movs=state.movs.filter(m=>m.id!==editandoId);
+    guardar(); cerrarHoja();
+    if(detModo) renderDetalle();
+    toast('Borrado'); render();
+  }
 }
 function borrar(id){
   if(confirm('¿Borrar este movimiento?')){
-    state.movs=state.movs.filter(m=>m.id!==id); guardar(); toast('Borrado'); render();
+    state.movs=state.movs.filter(m=>m.id!==id); guardar();
+    if(detModo) renderDetalle();
+    toast('Borrado'); render();
+  }
+}
+
+// ============================================================
+//  ATAJOS (gastos repetitivos de un toque)
+// ============================================================
+let atCat='comida', atNec=true, atMedio='efectivo';
+function abrirAtajoHoja(){
+  atCat=(cats()[0]&&cats()[0].k)||'comida'; atNec=true; atMedio='efectivo';
+  document.getElementById('atDesc').value=''; document.getElementById('atMonto').value='';
+  atRenderCats(); atRenderMedios(); atSetND(true);
+  document.getElementById('atOverlay').classList.add('show');
+  document.getElementById('atHoja').classList.add('show');
+}
+function cerrarAtajoHoja(){
+  document.getElementById('atOverlay').classList.remove('show');
+  document.getElementById('atHoja').classList.remove('show');
+}
+function atRenderCats(){
+  document.getElementById('atCats').innerHTML=cats().map(c=>
+    `<div class="cat-chip ${c.k===atCat?'on':''}" onclick="atSetCat('${c.k}')">${c.em} ${c.n}</div>`).join('');
+}
+function atSetCat(k){atCat=k;atRenderCats();}
+function atSetND(v){atNec=v;
+  document.getElementById('atNec').classList.toggle('on-nec',v);
+  document.getElementById('atDes').classList.toggle('on-des',!v);
+}
+function atRenderMedios(){
+  document.getElementById('atMedios').innerHTML=MEDIOS.map(([k,n])=>
+    `<button class="${k===atMedio?'on':''}" onclick="atSetMedio('${k}')">${n}</button>`).join('');
+}
+function atSetMedio(k){atMedio=k;atRenderMedios();}
+function guardarAtajo(){
+  const monto=parseFloat(document.getElementById('atMonto').value);
+  const desc=document.getElementById('atDesc').value.trim();
+  if(!monto||monto<=0){toast('Poné un monto');return;}
+  state.atajos.push({id:Date.now(),desc:desc,monto:monto,categoria:atCat,nec:atNec,medio:atMedio});
+  guardar(); cerrarAtajoHoja(); toast('Atajo creado'); render();
+}
+// Un toque: carga el gasto del atajo con fecha de hoy.
+function usarAtajo(id){
+  const a=state.atajos.find(x=>x.id===id); if(!a)return;
+  state.movs.push({id:Date.now(),tipo:'gasto',monto:a.monto,desc:a.desc,fecha:hoyStr(),
+    categoria:a.categoria,nec:a.nec!==false,medio:a.medio||'efectivo'});
+  guardar(); toast('✓ '+(a.desc||'Gasto')+' cargado'); render();
+}
+function borrarAtajo(id){ state.atajos=state.atajos.filter(a=>a.id!==id); guardar(); toast('Atajo borrado'); render(); }
+
+// ============================================================
+//  GESTIÓN DE CATEGORÍAS
+// ============================================================
+function agregarCategoria(){
+  const n=prompt('Nombre de la categoría nueva (ej: Seguros/PAS):'); if(!n||!n.trim())return;
+  const em=(prompt('Un emoji para la categoría (ej: 🛡️):','🏷️')||'🏷️').trim().slice(0,2);
+  const k='c'+Date.now();
+  const c=PALETA[(state.cats.length)%PALETA.length];
+  state.cats.push({k:k,n:n.trim(),em:em,c:c});
+  guardar(); toast('Categoría agregada'); render();
+}
+function renombrarCategoria(k){
+  const cat=state.cats.find(c=>c.k===k); if(!cat)return;
+  const n=prompt('Nuevo nombre:',cat.n); if(n&&n.trim())cat.n=n.trim();
+  const em=prompt('Emoji:',cat.em); if(em&&em.trim())cat.em=em.trim().slice(0,2);
+  guardar(); if(detModo)renderDetalle(); toast('Categoría actualizada'); render();
+}
+function borrarCategoria(k){
+  if(k==='varios'){toast('Esa no se puede borrar');return;}
+  const enUso=state.movs.filter(m=>m.categoria===k).length;
+  const msg=enUso?`Hay ${enUso} gasto(s) en esta categoría. Si la borrás, pasan a "Varios". ¿Seguir?`:'¿Borrar esta categoría?';
+  if(confirm(msg)){
+    state.movs.forEach(m=>{ if(m.categoria===k)m.categoria='varios'; });
+    state.cats=state.cats.filter(c=>c.k!==k);
+    guardar(); toast('Categoría borrada'); render();
   }
 }
 

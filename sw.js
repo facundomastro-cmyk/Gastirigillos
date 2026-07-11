@@ -1,5 +1,5 @@
 // Service worker: la app funciona sin internet una vez instalada.
-const CACHE = 'mis-gastos-v3';
+const CACHE = 'mis-gastos-v5';
 const ASSETS = ['./', './index.html', './manifest.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
